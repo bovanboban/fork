@@ -1,0 +1,19 @@
+use hyper::{Body, Request, Response, Server};
+use hyper::service::{make_service_fn, service_fn};
+use tokio::runtime::Runtime;
+
+async fn handle_request(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
+    Ok(Response::new(Body::from(format!("Hello, World! You requested: {}", req.uri()))))
+}
+
+fn main() {
+    let make_svc = make_service_fn(|_conn| async { Ok::<_, hyper::Error>(service_fn(handle_request)) });
+
+    let addr = ([127, 0, 0, 1], 3000).into();
+    let server = Server::bind(&addr).serve(make_svc);
+
+    println!("Listening on http://{}", addr);
+
+    let rt = Runtime::new().unwrap();
+    rt.block_on(server).unwrap();
+}
